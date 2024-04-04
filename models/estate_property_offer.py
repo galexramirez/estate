@@ -33,8 +33,9 @@ class PropertyOffer(models.Model):
                 lead.validity = 0
     
     def action_accept(self):
-        if any(record.status == 'accepted' for record in self):
-            raise UserError('Only one offer can be accepted.')
+        for record in self:
+            if record.status == 'accepted':
+                raise UserError('Only one offer can be accepted.')
         self.update({'status': 'accepted'})
         return True
 
