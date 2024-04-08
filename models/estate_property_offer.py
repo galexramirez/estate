@@ -3,11 +3,13 @@
 
 from odoo import api, fields, models
 from datetime import datetime, timedelta
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools.float_utils import float_compare, float_is_zero, float_round
 
 class PropertyOffer(models.Model):
     _name = "estate.property.offer"
     _description = "Estate Property Offer"
+    _order = "price desc"
     
     price = fields.Float(string="Price")
     status = fields.Selection([('accepted', 'Accepted'), ('refused', 'Refused')], string="Status", copy=False)
@@ -32,13 +34,22 @@ class PropertyOffer(models.Model):
             else:
                 lead.validity = 0
     
+    #@api.constrains('price')
     def action_accept(self):
         for record in self:
-            if record.status == 'accepted':
+            if (self.search([('property_id', '=', record.property_id.id), ('status', '=', 'accepted')])):
                 raise UserError('Only one offer can be accepted.')
+            if float_compare(record.price, 0.9 * record.property_id.expected_price, precision_rounding=2) == -1:
+                raise ValidationError('The selling price must at least 90% of the expected price!. You must reduce the expected price if you want to accept this offer.')
         self.update({'status': 'accepted'})
+        self.env['estate.property'].search([('id', '=', self.property_id.id)]).update({'selling_price': self.price, 'buyer_id': self.partner_id.id})
         return True
 
     def action_refuse(self):
         self.update({'status': 'refused'})
         return True
+    
+    _sql_constraints = [
+        ('check_offer_price', 'CHECK(price > 0)',
+         'The Offer Price must be strictly positive')
+        ]

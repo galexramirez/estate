@@ -7,6 +7,7 @@ from odoo.exceptions import UserError
 class Property(models.Model):
     _name = "estate.property"
     _description = "Estate Property"
+    _order = "id desc"
     
     name = fields.Char(string="Title", required=True)
     description = fields.Text(string="Description")
@@ -62,3 +63,10 @@ class Property(models.Model):
             raise UserError('Sold properties cannot be canceled.')
         self.update({'status': 'canceled'})
         return True
+    
+    _sql_constraints = [
+        ('check_expected_price', 'CHECK(expected_price > 0)',
+         'The Expected Price must be strictly positive'),
+        ('check_selling_price', 'CHECK(selling_price >= 0)',
+         'The Selling Price must be positive')
+    ]
