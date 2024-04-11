@@ -17,6 +17,7 @@ class PropertyOffer(models.Model):
     property_id = fields.Many2one('estate.property', string='Property', required=True)
     validity = fields.Integer(string="Validity (days)", default=7)
     date_deadline = fields.Date(string="Deadline", compute='_compute_date_deadline', inverse='_inverse_date_deadline', default=datetime.today() + timedelta(days=7))
+    property_type_id = fields.Many2one("estate.property", string="Property Type")
     
     @api.depends('validity', 'create_date')
     def _compute_date_deadline(self):
@@ -26,6 +27,13 @@ class PropertyOffer(models.Model):
                     lead.date_deadline = lead.create_date + timedelta(days=lead.validity)
                 else:
                     lead.date_deadline = datetime.today() + timedelta(days=lead.validity)
+                    
+    @api.model
+    def create(self, vals):
+        if float_compare(vals['price'], max(self.env['estate.property.offer'].search([('property_id', '=', vals['property_id'])]).mapped('price'), default=0), precision_rounding=2) == -1:
+            raise ValidationError('One offer with a lower amount than an existing offer can not be created.')
+        self.env['estate.property'].browse(vals['property_id']).update({'status':'offer_received'})
+        return super(PropertyOffer, self).create(vals)
 
     def _inverse_date_deadline(self):
         for lead in self:
@@ -34,7 +42,6 @@ class PropertyOffer(models.Model):
             else:
                 lead.validity = 0
     
-    #@api.constrains('price')
     def action_accept(self):
         for record in self:
             if (self.search([('property_id', '=', record.property_id.id), ('status', '=', 'accepted')])):
@@ -42,7 +49,7 @@ class PropertyOffer(models.Model):
             if float_compare(record.price, 0.9 * record.property_id.expected_price, precision_rounding=2) == -1:
                 raise ValidationError('The selling price must at least 90% of the expected price!. You must reduce the expected price if you want to accept this offer.')
         self.update({'status': 'accepted'})
-        self.env['estate.property'].search([('id', '=', self.property_id.id)]).update({'selling_price': self.price, 'buyer_id': self.partner_id.id})
+        self.env['estate.property'].search([('id', '=', self.property_id.id)]).update({'selling_price': self.price, 'buyer_id': self.partner_id.id, 'status': 'offer_accepted'})
         return True
 
     def action_refuse(self):

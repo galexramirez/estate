@@ -24,11 +24,11 @@ class Property(models.Model):
     garden_orientation = fields.Selection(string="Garden Orientation", selection=[('north', 'Norte'), ('south', 'Sur'), ('east', 'Este'), ('west', 'Oeste')])
     status = fields.Selection(string="Status", selection=[('new', 'New'), ('offer_received', 'Offer Received'), ('offer_accepted', 'Offer Accepted'), ('sold', 'Sold'), ('canceled', 'Canceled')], default="new", copy=False, readonly=True)
     active = fields.Boolean(string="Active", default=True)
-    property_type_id = fields.Many2one("estate.property.type", string="Property Type")
+    property_type_id = fields.Many2one("estate.property.type", string="Property Type", options="{'no_create': True, 'no_create_edit':True}")
     salesman_id = fields.Many2one("res.users", string="Salesman", index=True, tracking=True, default=lambda self: self.env.user)
     buyer_id = fields.Many2one("res.partner", string="Buyer", copy=False, readonly=True)
     tag_ids = fields.Many2many("estate.property.tag", string="Tags")
-    offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers")
+    offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers", )
     total_area = fields.Float(compute="_compute_total_area", string="Total Area (sqm)")
     best_price = fields.Float(compute="_compute_best_price", string="Best Offer")
     
@@ -52,6 +52,11 @@ class Property(models.Model):
                 record.garden_area = 0
                 record.garden_orientation = ''
 
+    @api.ondelete(at_uninstall=False)
+    def _unlink_if_status_new_canceled(self):
+        if any(record.status in ('offer_received','offer_accepted', 'sold') for record in self):
+            raise UserError("Only new o canceled properties can be deleted.")
+    
     def action_set_status(self):
         if any(record.status == 'canceled' for record in self):
             raise UserError('Canceled properties cannot be sold.')
