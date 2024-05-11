@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_users_view_form" model="ir.ui.view">
+            <field name="name">res.users.view.form.inherited</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"></field>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/notebook/page[@name='preferences']" position="after">
+                    <page name="properties" string="Real Estate Properties">
+                        <field name="property_ids"/>
+                    </page>                    
+                </xpath>
+            </field>
+        </record>
+
+        <record id="inherited_res_users_action" model="ir.actions.act_window">
+            <field name="name">Users</field>
+            <field name="res_model">res.users</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[ ( 'property_ids.status', 'in', ('new', 'offer_received') ) ]</field>
+        </record>
+
+        <record id="inherited_res_users_action_view_tree" model="ir.actions.act_window.view">
+            <field name="sequence" eval= "1"></field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="base.view_users_tree"></field>
+            <field name="act_window_id" ref="inherited_res_users_action"></field>
+        </record>
+
+        <record id="inherited_res_users_action_view_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval= "2"></field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="res_users_view_form"></field>
+            <field name="act_window_id" ref="inherited_res_users_action"></field>
+        </record>
+
+    </data>
+</odoo>

@@ -7,6 +7,7 @@
         <menuitem id="estate_first_level_menu2" name="Seetings">
             <menuitem id="estate_model_menu21_action" action="estate_property_type_action"/>
             <menuitem id="estate_model_menu22_action" action="estate_property_tag_action"/>
+            <menuitem id="estate_model_menu23_action" action="inherited_res_users_action"/>
         </menuitem>
     </menuitem>
 </odoo>
