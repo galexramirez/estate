@@ -57,11 +57,11 @@ class Property(models.Model):
         if any(record.status in ('offer_received','offer_accepted', 'sold') for record in self):
             raise UserError("Only new o canceled properties can be deleted.")
     
-    def action_set_status(self):
+    """ def action_set_status(self):
         if any(record.status == 'canceled' for record in self):
             raise UserError('Canceled properties cannot be sold.')
         self.update({'status': 'sold'})
-        return True
+        return True """
     
     def action_set_cancel(self):
         if any(record.status == 'sold' for record in self):
