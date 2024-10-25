@@ -30,8 +30,8 @@
         <field name="arch" type="xml">
             <form string="Real Estate">
                 <header>
-                    <button name="action_set_status" string="SOLD" type="object" class="oe_highlight" invisible="status in ('sold')" />
-                    <button name="action_set_cancel" string="CANCEL" type="object" class="oe_highlight" invisible="status in ('sold')" />
+                    <button name="action_set_status" string="CLOSED" type="object" class="oe_highlight" invisible="status in ('closed')" />
+                    <button name="action_set_cancel" string="CANCEL" type="object" class="oe_highlight" invisible="status in ('closed')" />
                     <field name="status" widget="statusbar" statusbar_visible="new,offer_received,offer_accepted,sold,canceled" />
                 </header>
                 <sheet>
